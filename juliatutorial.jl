@@ -29,3 +29,6 @@ end
 println("Build ", Array{Int}(value.(x')), " using regular labor")
 println("Build ", Array{Int}(value.(y')), " using overtime labor")
 println("Inventory: ", Array{Int}(value.(h')))
+
+
+asdasdasd
