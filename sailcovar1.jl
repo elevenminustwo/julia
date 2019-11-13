@@ -2,7 +2,7 @@
 using JuMP, Clp
 
 
-d = [40 60 70 25 36]                   # monthly demand for boats
+d = [40 60 75 25 36]                   # monthly demand for boats
 
 m = Model(with_optimizer(Clp.Optimizer))
 
