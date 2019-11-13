@@ -2,31 +2,31 @@
 using JuMP, Clp
 
 
-d = [0 40 60 75 25]                   # monthly demand for boats
+d = [40 60 75 25]                   # monthly demand for boats
 
 m = Model(with_optimizer(Clp.Optimizer))
 
 @variable(m, 0 <= x[1:5] <= 40)       # boats produced with regular labor
 @variable(m, y[1:5] >= 0)             # boats produced with overtime labor
-@variable(m, hp[1:5] >= 0)             # boats held in inventory
-@variable(m, hn[1:5] >= 0)
-@variable(m, p[1:4] >= 0)
-@variable(m, n[1:4] >= 0)
-@variable(m, hcombine[1:5])
-@variable(m, combine[1:4])
-@constraint(m, hp[5] >= 10)
-@constraint(m, hn[5] <= 0)
+@variable(m, hp[1:5] >= 0)            # h+
+@variable(m, hn[1:5] >= 0)            # h-
+@variable(m, p[1:4] >= 0)             # c+
+@variable(m, n[1:4] >= 0)             # c-
+@variable(m, hcombine[1:5])           # h
+@variable(m, combine[1:4])            # c
+@constraint(m, hp[5] >= 10)           # final h+ >=10
+@constraint(m, hn[5] <= 0)            # final h- <=0
 
-@constraint(m, x[1]+y[1]==50)
-@constraint(m, hp[1]-hn[1]==10)
+@constraint(m, x[1]+y[1]==50)         # 50 boats pre-made
+@constraint(m, hp[1]-hn[1]==10)       # initial inventory
 
-@constraint(m,flow3[i in 1:4],x[i+1]+y[i+1]-(x[i]+y[i])==combine[i])
-@constraint(m, flow2[i in 1:4], p[i]-n[i]==combine[i])
-@constraint(m, flow4[i in 1:5], hp[i]-hn[i]==hcombine[i])
+@constraint(m, flow3[i in 1:4],x[i+1]+y[i+1]-(x[i]+y[i])==combine[i]) # Capture change in product period to period
+@constraint(m, flow2[i in 1:4], p[i]-n[i]==combine[i]) # (c+) - (c-) = c
+@constraint(m, flow4[i in 1:5], hp[i]-hn[i]==hcombine[i]) # (h+) - (h-) = h
 
-@constraint(m, flow[i in 1:4], hcombine[i]+x[i+1]+y[i+1]==d[i+1]+hcombine[i+1])     # conservation of boats x[i+1]+y[i+1]-x[i]+y[i]==p[i+1]-n[i+1]
+@constraint(m, flow[i in 1:4], hcombine[i]+x[i+1]+y[i+1]==d[i]+hcombine[i+1]) # x and y shifted so we should use i+1 instead
 
-@objective(m, Min, 400*sum(x) + 450*sum(y) + 20*sum(hp) + 400*sum(p)+500*sum(n) + 100*sum(hn))         # minimize costs
+@objective(m, Min, 400*sum(x) + 450*sum(y) + 20*sum(hp) + 400*sum(p)+500*sum(n) + 100*sum(hn)) # minimize costs
 
 optimize!(m)
 
